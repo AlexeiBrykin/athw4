@@ -185,4 +185,19 @@ public class Service {
         }
         return false;
     }
+    public static List<Employee> findEmployeesByDepartmentId(int departmentId) {
+        List<Employee> employees = new ArrayList<>();
+        try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
+            PreparedStatement stm = con.prepareStatement("SELECT ID, NAME, DepartmentID FROM Employee WHERE DepartmentID = ?");
+            stm.setInt(1, departmentId);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                Employee employee = new Employee(rs.getInt("ID"), rs.getString("NAME"), rs.getInt("DepartmentID"));
+                employees.add(employee);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return employees;
+    }
 }
