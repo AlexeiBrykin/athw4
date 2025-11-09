@@ -1,8 +1,5 @@
 package office;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,6 +84,22 @@ public class Service {
         try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
             PreparedStatement stm = con.prepareStatement("SELECT ID, NAME, DepartmentID FROM Employee WHERE NAME = ?");
             stm.setString(1, name);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                Employee employee = new Employee(rs.getInt("ID"), rs.getString("NAME"), rs.getInt("DepartmentID"));
+                employees.add(employee);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return employees;
+    }
+
+    public static List<Employee> findEmployeesByDepartmentId(int departmentId) {
+        List<Employee> employees = new ArrayList<>();
+        try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
+            PreparedStatement stm = con.prepareStatement("SELECT ID, NAME, DepartmentID FROM Employee WHERE DepartmentID = ?");
+            stm.setInt(1, departmentId);
             ResultSet rs = stm.executeQuery();
             while (rs.next()) {
                 Employee employee = new Employee(rs.getInt("ID"), rs.getString("NAME"), rs.getInt("DepartmentID"));
@@ -185,11 +198,26 @@ public class Service {
         }
         return false;
     }
-    public static List<Employee> findEmployeesByDepartmentId(int departmentId) {
+
+    public static List<Department> getAllDepartments() {
+        List<Department> departments = new ArrayList<>();
+        try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
+            PreparedStatement stm = con.prepareStatement("SELECT ID, NAME FROM Department");
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                Department department = new Department(rs.getInt("ID"), rs.getString("NAME"));
+                departments.add(department);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return departments;
+    }
+
+    public static List<Employee> getAllEmployees() {
         List<Employee> employees = new ArrayList<>();
         try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
-            PreparedStatement stm = con.prepareStatement("SELECT ID, NAME, DepartmentID FROM Employee WHERE DepartmentID = ?");
-            stm.setInt(1, departmentId);
+            PreparedStatement stm = con.prepareStatement("SELECT ID, NAME, DepartmentID FROM Employee");
             ResultSet rs = stm.executeQuery();
             while (rs.next()) {
                 Employee employee = new Employee(rs.getInt("ID"), rs.getString("NAME"), rs.getInt("DepartmentID"));
