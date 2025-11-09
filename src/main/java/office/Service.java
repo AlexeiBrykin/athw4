@@ -3,9 +3,7 @@ package office;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,9 +46,15 @@ public class Service {
 
     public static void removeDepartment(Department d) {
         try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
-            PreparedStatement stm = con.prepareStatement("DELETE FROM Department WHERE ID=?");
-            stm.setInt(1, d.departmentID);
-            stm.executeUpdate();
+            // Удаляем всех сотрудников, принадлежащих этому отделу
+            PreparedStatement deleteEmployeesStm = con.prepareStatement("DELETE FROM Employee WHERE DepartmentID = ?");
+            deleteEmployeesStm.setInt(1, d.departmentID);
+            deleteEmployeesStm.executeUpdate();
+
+            // Удаляем сам отдел
+            PreparedStatement deleteDepartmentStm = con.prepareStatement("DELETE FROM Department WHERE ID = ?");
+            deleteDepartmentStm.setInt(1, d.departmentID);
+            deleteDepartmentStm.executeUpdate();
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -149,6 +153,7 @@ public class Service {
             System.out.println(e);
         }
     }
+
     public static int countItEmployees() {
         int count = 0;
         try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
@@ -163,5 +168,21 @@ public class Service {
             System.out.println(e);
         }
         return count;
+    }
+
+    public static boolean checkEmployeesInDepartment(int departmentId) {
+        try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
+            PreparedStatement stm = con.prepareStatement(
+                    "SELECT COUNT(*) FROM Employee WHERE DepartmentID = ?"
+            );
+            stm.setInt(1, departmentId);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) == 0;
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return false;
     }
 }

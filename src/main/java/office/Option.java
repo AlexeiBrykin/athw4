@@ -1,6 +1,6 @@
 package office;
 
-import javax.xml.transform.Result;
+
 import java.sql.*;
 import java.util.Scanner;
 
@@ -12,12 +12,12 @@ public enum Option {
 
         void action() {
             System.out.println("Введите его id:");
-            int id=sc.nextInt();
+            int id = sc.nextInt();
             System.out.println("Введите его имя:");
-            String name=sc.next();
+            String name = sc.next();
             System.out.println("Введите id отдела:");
-            int depid=sc.nextInt();
-            Service.addEmployee(new Employee(id,name,depid));
+            int depid = sc.nextInt();
+            Service.addEmployee(new Employee(id, name, depid));
         }
     },
     DeleteEmployee {
@@ -27,8 +27,8 @@ public enum Option {
 
         void action() {
             System.out.println("Введите его id:");
-            int id=sc.nextInt();
-            Service.removeEmployee(new Employee(id,"",0));
+            int id = sc.nextInt();
+            Service.removeEmployee(new Employee(id, "", 0));
         }
     },
     AddDepartment {
@@ -38,10 +38,10 @@ public enum Option {
 
         void action() {
             System.out.println("Введите его id:");
-            int id=sc.nextInt();
+            int id = sc.nextInt();
             System.out.println("Введите его название:");
-            String name=sc.next();
-            Service.addDepartment(new Department(id,name));
+            String name = sc.next();
+            Service.addDepartment(new Department(id, name));
         }
     },
     DeleteDepartment {
@@ -51,8 +51,13 @@ public enum Option {
 
         void action() {
             System.out.println("Введите его id:");
-            int id=sc.nextInt();
-            Service.removeDepartment(new Department(id,""));
+            int id = sc.nextInt();
+            Service.removeDepartment(new Department(id, ""));
+            if (Service.checkEmployeesInDepartment(id)) {
+                System.out.println("Отдел успешно удален, и все связанные с ним сотрудники также удалены.");
+            } else {
+                System.out.println("Ошибка при удалении сотрудников отдела.");
+            }
         }
     },
     CLEAR_DB {
@@ -71,22 +76,17 @@ public enum Option {
         }
 
         void action() {
-            try(Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")){
+            try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
                 PreparedStatement stm = con.prepareStatement(
-                        "Select ID, NAME as txt from Department where name like ?",
-                        ResultSet.TYPE_SCROLL_INSENSITIVE,
-                        ResultSet.CONCUR_UPDATABLE
+                        "Select ID, NAME as txt from Department"
                 );
-                String str="A%";
-                //ResultSet rs= stm.executeQuery("Select ID, NAME as txt from Department");
-                stm.setString(1,str);
-                ResultSet rs=stm.executeQuery();
+                ResultSet rs = stm.executeQuery();
                 System.out.println("------------------------------------");
-                while(rs.next()){
-                    System.out.println(rs.getInt("ID")+"\t"+rs.getString("name"));
+                while (rs.next()) {
+                    System.out.println(rs.getInt("ID") + "\t" + rs.getString("name"));
                 }
                 System.out.println("------------------------------------");
-            }catch (SQLException e) {
+            } catch (SQLException e) {
                 System.out.println(e);
             }
         }
@@ -97,17 +97,15 @@ public enum Option {
         }
 
         void action() {
-            try(Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")){
+            try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
                 Statement stm = con.createStatement();
-                ResultSet rs= stm.executeQuery("Select Employee.ID, Employee.Name,Department.Name as DepName from Employee join Department on Employee.DepartmentID=Department.ID");
-                //ResultSet rs= stm.executeQuery("Select Employee.ID, Employee.Name,Employee.DepartmentID as DepName from Employee");
+                ResultSet rs = stm.executeQuery("Select Employee.ID, Employee.Name, Department.Name as DepName from Employee join Department on Employee.DepartmentID=Department.ID");
                 System.out.println("------------------------------------");
-                ResultSetMetaData metaData= rs.getMetaData();
-                while(rs.next()){
-                    System.out.println(rs.getInt("ID")+"\t"+rs.getString("NAME")+"\t"+rs.getString("DepName"));
+                while (rs.next()) {
+                    System.out.println(rs.getInt("ID") + "\t" + rs.getString("NAME") + "\t" + rs.getString("DepName"));
                 }
                 System.out.println("------------------------------------");
-            }catch (SQLException e) {
+            } catch (SQLException e) {
                 System.out.println(e);
             }
         }
@@ -120,7 +118,7 @@ public enum Option {
         void action() {
             System.out.println("выход");
         }
-    },;
+    };
 
     Scanner sc = new Scanner(System.in);
     abstract String getText();
